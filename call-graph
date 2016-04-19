@@ -15,7 +15,8 @@ def call_graph(ruby)
   defs_to_calls = {}
   defs.each do |d|
     calls = calls_from_def(d)
-    call_names = calls.map {|c| send_name(c)}.find_all{ |cn| def_names.include?(cn) }
+    call_names = calls.map {|c| send_name(c)}
+    call_names = call_names.find_all{ |cn| def_names.include?(cn) }
     defs_to_calls[def_name(d)] = call_names
   end
 
