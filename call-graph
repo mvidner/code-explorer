@@ -76,9 +76,9 @@ def dot_from_hash(graph)
   dot << "rankdir=LR;\n"
   graph.keys.sort.each do |vertex|
     destinations = graph[vertex].sort
-    dot << "#{vertex}[href=\"/#{vertex}\"];\n"
+    dot << "\"#{vertex}\"[href=\"/#{vertex}\"];\n"
     destinations.each do |d|
-      dot << "#{vertex} -> #{d};\n"
+      dot << "\"#{vertex}\" -> \"#{d}\";\n"
     end
   end
   dot << "}\n"
