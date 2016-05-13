@@ -88,5 +88,5 @@ end
 filename_rb = ARGV[0]
 rb = File.read(filename_rb)
 dot = call_graph(rb)
-filename_dot = filename_rb.sub(/\.rb$/, ".dot")
+filename_dot = filename_rb.sub(/\.rb$/, "") + ".dot"
 File.write(filename_dot, dot)
