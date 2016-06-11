@@ -4,6 +4,7 @@
 
 require "parser/current"
 require "pp"
+require "set"
 
 def main
   filename_rb = ARGV[0]
@@ -40,22 +41,54 @@ def dep_graph(ast)
   dot_from_hash({})
 end
 
-def def_name(node)
-  name, _args, _body = *node
-  name
-end
+# tracks what constants are resolvable
+class ConstBinding
+  def initialize(fqname, parent = nil)
+    @fqname = fqname
+    @parent = parent
+    @known = Set.new
+  end
 
-def send_name(node)
-  _receiver, name, *_args = *node
-  name
+  # @return [ConstBinding] the new scope
+  def open_namespace(fqname)
+    ns = self.class.new(fqname, self)
+    @known << fqname
+    ns
+  end
+
+  # @return [ConstBinding] the parent scope
+  def close_namespace
+    @parent
+  end
+
+  def resolve_declared_const(name)
+    if @fqname.empty?
+      name
+    else
+      "#{@fqname}::#{name}"
+    end
+  end
+
+  def resolve_used_const(name)
+#    puts "resolving #{name} in #{@fqname}, known #{@known.inspect}"
+    candidate = resolve_declared_const(name)
+    if @known.include?(candidate)
+      candidate
+    else
+      name
+    end
+  end
 end
 
 class Consts < Parser::AST::Processor
+  # @return [ConstBinding]
+  attr_reader :cb
+
   def initialize
+    @cb = ConstBinding.new("")
   end
 
   def report_modules(ast)
-    @module_nesting = []
     process(ast)
   end
 
@@ -77,31 +110,46 @@ class Consts < Parser::AST::Processor
     end
   end
 
+  def new_scope(name, &block)
+    @cb = cb.open_namespace(name)
+    block.call
+    @cb = cb.close_namespace
+  end
+
   def on_module(node)
     name, _body = *node
-    name = const_name_from_sexp(name)
+    name = cb.resolve_declared_const(const_name_from_sexp(name))
     puts "module #{name}"
-    super
+
+    new_scope(name) do
+      super
+    end
   end
 
   def on_class(node)
     name, parent, _body = *node
-    parent ||= AST::Node.new(:const, [nil, :Object])
+    parent ||= AST::Node.new(:const, [nil, :Object]) # or ::Object?
 
-    name   = const_name_from_sexp(name)
-    parent = const_name_from_sexp(parent)
+    name   = cb.resolve_declared_const(const_name_from_sexp(name))
+    parent = cb.resolve_used_const(const_name_from_sexp(parent))
     puts "class #{name} < #{parent}"
-    super
+
+    new_scope(name) do
+      super
+    end
   end
 
   def on_sclass(node)
     parent, _body = *node
 
     parent = const_name_from_sexp(parent)
-    puts "class << #{parent}"
-    super
+    name = "<< #{parent}" # cheating
+    puts "class #{name}"
+
+    new_scope(name) do
+      super
+    end
   end
 end
-
 
 main
