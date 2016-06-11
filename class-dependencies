@@ -4,14 +4,10 @@
 
 require "parser/current"
 require "pp"
-require "set"
 
 def main
-  filename_rb = ARGV[0]
-  ast = ast_for_filename(filename_rb)
-  dot = dep_graph(ast)
-  filename_dot = filename_rb.sub(/\.rb$/, "") + ".class.dot"
-  File.write(filename_dot, dot)
+  asts = ARGV.map {|fn| ast_for_filename(fn)}
+  Consts.new.report_modules(asts)
 end
 
 def dot_from_hash(graph)
@@ -46,19 +42,31 @@ class ConstBinding
   def initialize(fqname, parent = nil)
     @fqname = fqname
     @parent = parent
-    @known = Set.new
+    @known = {}
   end
 
   # @return [ConstBinding] the new scope
   def open_namespace(fqname)
-    ns = self.class.new(fqname, self)
-    @known << fqname
+    ns = @known[fqname]
+    if ns.is_a? ConstBinding
+      # puts "(reopening #{fqname})"
+    else
+      ns = self.class.new(fqname, self)
+      @known[fqname] = ns
+    end
     ns
   end
 
   # @return [ConstBinding] the parent scope
   def close_namespace
     @parent
+  end
+
+  def declare_const(fqname)
+    if @known[fqname]
+      puts "warning: #{fqname} already declared"
+    end
+    @known[fqname] = :const
   end
 
   def resolve_declared_const(name)
@@ -74,6 +82,8 @@ class ConstBinding
     candidate = resolve_declared_const(name)
     if @known.include?(candidate)
       candidate
+    elsif @parent
+      @parent.resolve_used_const(name)
     else
       name
     end
@@ -81,6 +91,8 @@ class ConstBinding
 end
 
 class Consts < Parser::AST::Processor
+  include AST::Sexp
+
   # @return [ConstBinding]
   attr_reader :cb
 
@@ -88,8 +100,10 @@ class Consts < Parser::AST::Processor
     @cb = ConstBinding.new("")
   end
 
-  def report_modules(ast)
-    process(ast)
+  def report_modules(asts)
+    Array(asts).each do |ast|
+      process(ast)
+    end
   end
 
   def const_name_from_sexp(node)
@@ -98,8 +112,8 @@ class Consts < Parser::AST::Processor
       "self"
     when :cbase
       ""
-    when :const
-      parent, name = *node
+    when :const, :casgn
+      parent, name, _maybe_value = *node
       if parent
         const_name_from_sexp(parent) + "::#{name}"
       else
@@ -128,7 +142,7 @@ class Consts < Parser::AST::Processor
 
   def on_class(node)
     name, parent, _body = *node
-    parent ||= AST::Node.new(:const, [nil, :Object]) # or ::Object?
+    parent ||= s(:const, s(:cbase), :Object)
 
     name   = cb.resolve_declared_const(const_name_from_sexp(name))
     parent = cb.resolve_used_const(const_name_from_sexp(parent))
@@ -149,6 +163,12 @@ class Consts < Parser::AST::Processor
     new_scope(name) do
       super
     end
+  end
+
+  def on_casgn(node)
+    name = cb.resolve_declared_const(const_name_from_sexp(node))
+    cb.declare_const(name)
+    puts "casgn #{name}"
   end
 end
 
