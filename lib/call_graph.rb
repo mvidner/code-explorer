@@ -2,12 +2,16 @@
 require "parser/current"
 require "pp"
 
-# ruby [String] a ruby program
+require_relative "dot"
+
+# filename_rb [String] file with a ruby program
 # @return a dot graph string
-def call_graph(ruby)
-  ast = Parser::CurrentRuby.parse(ruby)
+def call_graph(filename_rb)
+  ruby = File.read(filename_rb)
+  ast = Parser::CurrentRuby.parse(ruby, filename_rb)
   defs = defs_from_ast(ast)
   def_names = defs.map {|d| def_name(d) }
+  defs_to_hrefs = defs.map {|d| [def_name(d), "/files/" + def_location(d)] }.to_h
 
   defs_to_calls = {}
   defs.each do |d|
@@ -17,12 +21,19 @@ def call_graph(ruby)
     defs_to_calls[def_name(d)] = call_names
   end
 
-  dot_from_hash(defs_to_calls)
+  dot_from_hash(defs_to_calls, defs_to_hrefs)
 end
 
 def def_name(node)
   name, _args, _body = *node
   name
+end
+
+def def_location(node)
+  range = node.loc.expression
+  file = range.source_buffer.name
+  line = range.line
+  "#{file}#line=#{line}"
 end
 
 def send_name(node)
@@ -66,19 +77,3 @@ end
 def calls_from_def(ast)
   Defs.new.sends_from_ast(ast)
 end
-
-def dot_from_hash(graph)
-  dot = ""
-  dot << "digraph g {\n"
-  dot << "rankdir=LR;\n"
-  graph.keys.sort.each do |vertex|
-    destinations = graph[vertex].sort
-    dot << "\"#{vertex}\"[href=\"/#{vertex}\"];\n"
-    destinations.each do |d|
-      dot << "\"#{vertex}\" -> \"#{d}\";\n"
-    end
-  end
-  dot << "}\n"
-  dot
-end
-

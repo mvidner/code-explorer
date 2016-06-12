@@ -30,8 +30,7 @@ get "/files/*" do |path|
 end
 
 get "/call-graph/*" do |path|
-  rb = File.read(path)
-  dot = call_graph(rb)
+  dot = call_graph(path)
 
   type = :svg
   graph = Cheetah.run(["dot", "-T#{type}"], stdin: dot, stdout: :capture)
