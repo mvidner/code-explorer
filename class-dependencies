@@ -7,7 +7,10 @@ require "pp"
 
 def main
   asts = ARGV.map {|fn| ast_for_filename(fn)}
-  Consts.new.report_modules(asts)
+  cs = Consts.new
+  cs.report_modules(asts)
+  graph = cs.superclasses
+  puts dot_from_hash(graph)
 end
 
 def dot_from_hash(graph)
@@ -64,7 +67,7 @@ class ConstBinding
 
   def declare_const(fqname)
     if @known[fqname]
-      puts "warning: #{fqname} already declared"
+#      puts "warning: #{fqname} already declared"
     end
     @known[fqname] = :const
   end
@@ -95,9 +98,12 @@ class Consts < Parser::AST::Processor
 
   # @return [ConstBinding]
   attr_reader :cb
+  # @return [Hash{String => Array<String>}]
+  attr_reader :superclasses
 
   def initialize
     @cb = ConstBinding.new("")
+    @superclasses = {}
   end
 
   def report_modules(asts)
@@ -133,7 +139,7 @@ class Consts < Parser::AST::Processor
   def on_module(node)
     name, _body = *node
     name = cb.resolve_declared_const(const_name_from_sexp(name))
-    puts "module #{name}"
+#    puts "module #{name}"
 
     new_scope(name) do
       super
@@ -146,7 +152,9 @@ class Consts < Parser::AST::Processor
 
     name   = cb.resolve_declared_const(const_name_from_sexp(name))
     parent = cb.resolve_used_const(const_name_from_sexp(parent))
-    puts "class #{name} < #{parent}"
+#    puts "class #{name} < #{parent}"
+
+    @superclasses[name] = [parent]
 
     new_scope(name) do
       super
@@ -158,7 +166,7 @@ class Consts < Parser::AST::Processor
 
     parent = const_name_from_sexp(parent)
     name = "<< #{parent}" # cheating
-    puts "class #{name}"
+#    puts "class #{name}"
 
     new_scope(name) do
       super
@@ -168,8 +176,15 @@ class Consts < Parser::AST::Processor
   def on_casgn(node)
     name = cb.resolve_declared_const(const_name_from_sexp(node))
     cb.declare_const(name)
-    puts "casgn #{name}"
+#    puts "casgn #{name}"
   end
+
+  def on_const(node)
+    name = const_name_from_sexp(node)
+    fqname = cb.resolve_used_const(name)
+#    puts "CONST #{fqname}"
+  end
+
 end
 
 main
