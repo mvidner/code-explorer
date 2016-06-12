@@ -1,0 +1,41 @@
+#!/usr/bin/ruby
+
+require "sinatra"
+require "cheetah"
+
+$: << File.expand_path("../../lib", __FILE__)
+require "call_graph"
+require "numbered_lines"
+
+def path_link(prefix, path, text)
+    "<a href='#{prefix}/#{path}'>#{text}</a>"
+end
+
+configure do
+  mime_type :png, "image/png"
+  mime_type :svg, "image/svg+xml"
+end
+
+get "/" do
+  files = Dir.glob("**/*.rb").sort
+  files.map do |f|
+    path_link("/files", f, f) + " " +
+      path_link("/call-graph", f, "call graph")
+  end.join("<br>\n")
+end
+
+get "/files/*" do |path|
+  numbered_lines(File.read(path))
+#  send_file path, :type => :text
+end
+
+get "/call-graph/*" do |path|
+  rb = File.read(path)
+  dot = call_graph(rb)
+
+  type = :svg
+  graph = Cheetah.run(["dot", "-T#{type}"], stdin: dot, stdout: :capture)
+
+  content_type type
+  graph
+end
