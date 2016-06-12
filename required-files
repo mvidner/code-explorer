@@ -1,0 +1,11 @@
+#!/bin/sh
+# required-files ~/mygem/lib mygem
+# lists all files from mygem loaded when we "require mygem",
+# in the correct order
+INCLUDE=$1
+REQUIRE=$2
+strace -eopen ruby -I $INCLUDE -r $REQUIRE -e 1 |& \
+  grep -v ENOENT | \
+  grep $INCLUDE | \
+  uniq | \
+  sed -e 's/[^"]*"\([^"]*\)".*/\1/'
