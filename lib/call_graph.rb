@@ -25,7 +25,14 @@ def call_graph(filename_rb)
 end
 
 def def_name(node)
-  name, _args, _body = *node
+  case node.type
+  when :def
+    name, _args, _body = *node
+  when :defs
+    _obj, name, _args, _body = *node
+  else
+    raise
+  end
   name
 end
 
@@ -60,6 +67,11 @@ class Defs < Parser::AST::Processor
   end
 
   def on_def(node)
+    @defs << node
+    super
+  end
+
+  def on_defs(node)
     @defs << node
     super
   end
