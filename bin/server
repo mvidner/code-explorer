@@ -3,9 +3,8 @@
 require "sinatra"
 require "cheetah"
 
-$: << File.expand_path("../../lib", __FILE__)
-require "call_graph"
-require "numbered_lines"
+require "code_explorer/call_graph"
+require "code_explorer/numbered_lines"
 
 def path_link(prefix, path, text)
     "<a href='#{prefix}/#{path}'>#{text}</a>"

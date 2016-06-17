@@ -5,8 +5,7 @@
 require "parser/current"
 require "pp"
 
-$: << File.expand_path("../lib", __FILE__)
-require "dot"
+require "code_explorer/dot"
 
 def main
   asts = ARGV.map {|fn| ast_for_filename(fn)}

@@ -4,7 +4,7 @@
 
 $: << File.expand_path("../lib", __FILE__)
 
-require "call_graph"
+require "code_explorer/call_graph"
 
 filename_rb = ARGV[0]
 dot = call_graph(filename_rb)
