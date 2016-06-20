@@ -19,8 +19,8 @@ Gem::Specification.new do |s|
  
     "bin/call-graph",
     "bin/class-dependencies",
+    "bin/code-explorer",
     "bin/required-files",
-    "bin/server",
 
     "lib/code_explorer/call_graph.rb",
     "lib/code_explorer/dot.rb",
@@ -28,7 +28,9 @@ Gem::Specification.new do |s|
     "lib/code_explorer/version.rb"
   ]
 
+  s.executables = s.files.grep(/^bin\//) { |f| File.basename(f) }
+
   s.add_dependency "parser", "~> 2.0"
-  s.add_dependency "sinatra", "~> 0"
+  s.add_dependency "sinatra", "~> 1"
   s.add_dependency "cheetah", "~> 0" # for calling dot (graphviz.rpm)
 end

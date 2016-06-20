@@ -16,12 +16,19 @@ Yes, it is quick and dirty.
 
 MIT
 
+## Running from Source
+
+```sh
+bundle install --path vendor/bundle
+bundle exec bin/code-explorer  # otherwise Sinatra will not start
+```
+
 ## Example
 
 [One file in YaST][p-rb] has around 2700 lines and 73 methods. The call graph
 below was made with
 ```console
-$ ./call-graph ../yast/packager/src/modules/Packages.rb
+$ bin/call-graph ../yast/packager/src/modules/Packages.rb
 $ dot -Tpng -oPackages.png ../yast/packager/src/modules/Packages.dot
 ```
 
