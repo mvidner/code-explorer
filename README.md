@@ -1,16 +1,29 @@
-# Call Graph
+# Code Explorer
+
+## Tools
+
+### code-explorer
+
+Starts a local web server which lets you apply the other tools to all `*.rb`
+files in a directory subtree.
+
+### call-graph
 
 This makes a call graph among methods of a single Ruby file.
 
 I made it to help me orient myself in unfamiliar legacy code and to help
 identify cohesive parts that could be split out.
 
-Yes, it is quick and dirty.
+### class-dependencies
+
+Identifies fully qualified class names and makes an inheritance graph
 
 ## Requirements
 
 - [parser gem](https://github.com/whitequark/parser)
 - [Graphviz](http://www.graphviz.org/)
+- Sinatra
+- Cheetah
 
 ## License
 

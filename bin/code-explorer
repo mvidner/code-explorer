@@ -4,6 +4,7 @@ require "sinatra"
 require "cheetah"
 
 require "code_explorer/call_graph"
+require "code_explorer/consts"
 require "code_explorer/numbered_lines"
 
 def path_link(prefix, path, text)
@@ -16,11 +17,40 @@ configure do
 end
 
 get "/" do
+  page = ""
+
+  page << path_link("", "class-inheritance", "Class inheritance in /lib/")
+  page << "<hr>\n"
+
   files = Dir.glob("**/*.rb").sort
-  files.map do |f|
+  page << files.map do |f|
     path_link("/files", f, f) + " " +
       path_link("/call-graph", f, "call graph")
   end.join("<br>\n")
+  page
+end
+
+def ast_for_filename(fn)
+  ruby = File.read(fn)
+  Parser::CurrentRuby.parse(ruby)
+end
+
+def serve_dot(dot)
+  type = :svg
+  graph = Cheetah.run(["dot", "-T#{type}"], stdin: dot, stdout: :capture)
+
+  content_type type
+  graph
+end
+
+get "/class-inheritance" do
+  files = Dir.glob("lib/**/*.rb").sort
+  asts = files.map {|fn| ast_for_filename(fn)}
+  cs = CodeExplorer::Consts.new
+  cs.report_modules(asts)
+  graph = cs.superclasses
+
+  serve_dot(dot_from_hash(graph))
 end
 
 get "/files/*" do |path|
@@ -31,9 +61,5 @@ end
 get "/call-graph/*" do |path|
   dot = call_graph(path)
 
-  type = :svg
-  graph = Cheetah.run(["dot", "-T#{type}"], stdin: dot, stdout: :capture)
-
-  content_type type
-  graph
+  serve_dot(dot)
 end

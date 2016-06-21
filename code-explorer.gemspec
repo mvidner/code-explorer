@@ -16,13 +16,15 @@ Gem::Specification.new do |s|
   s.files       = [
     "README.md",
     "VERSION",
- 
+
     "bin/call-graph",
     "bin/class-dependencies",
     "bin/code-explorer",
     "bin/required-files",
 
     "lib/code_explorer/call_graph.rb",
+    "lib/code_explorer/const_binding.rb",
+    "lib/code_explorer/consts.rb",
     "lib/code_explorer/dot.rb",
     "lib/code_explorer/numbered_lines.rb",
     "lib/code_explorer/version.rb"
