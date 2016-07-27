@@ -20,10 +20,10 @@ Identifies fully qualified class names and makes an inheritance graph
 
 ## Requirements
 
-- [parser gem](https://github.com/whitequark/parser)
-- [Graphviz](http://www.graphviz.org/)
-- Sinatra
-- Cheetah
+- [parser gem](https://github.com/whitequark/parser) (parses Ruby)
+- [Graphviz](http://www.graphviz.org/) (graph visualizer)
+- [Sinatra](http://www.sinatrarb.com/) (a small web framework)
+- [Cheetah](https://github.com/openSUSE/cheetah) (runs commands)
 
 ## License
 
