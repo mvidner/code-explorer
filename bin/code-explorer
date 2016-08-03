@@ -19,7 +19,11 @@ end
 get "/" do
   page = ""
 
-  page << path_link("", "class-inheritance", "Class inheritance in /lib/")
+  page << \
+    path_link("", "class-inheritance",
+              "Class inheritance in {lib,src}/ <small>svg</small>") + " " +
+    path_link("", "class-inheritance?format=png",
+              "<small>png</small>")
   page << "<hr>\n"
 
   files = Dir.glob("**/*.rb").sort
@@ -44,13 +48,16 @@ def serve_dot(dot, type = :svg)
 end
 
 get "/class-inheritance" do
-  files = Dir.glob("lib/**/*.rb").sort
+  format = params["format"]
+  format = "svg" unless ["svg", "png"].include?(format)
+
+  files = Dir.glob("{lib,src}/**/*.rb").sort
   asts = files.map {|fn| ast_for_filename(fn)}
   cs = CodeExplorer::Consts.new
   cs.report_modules(asts)
   graph = cs.superclasses
 
-  serve_dot(dot_from_hash(graph))
+  serve_dot(dot_from_hash(graph), format)
 end
 
 get "/files/*" do |path|
