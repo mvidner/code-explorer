@@ -25,7 +25,8 @@ get "/" do
   files = Dir.glob("**/*.rb").sort
   page << files.map do |f|
     path_link("/files", f, f) + " " +
-      path_link("/call-graph", f, "call graph")
+      path_link("/call-graph", f, "call graph <small>svg</small>") + " "+
+      path_link("/call-graph", f + "?format=png", "<small>png</small>")
   end.join("<br>\n")
   page
 end
@@ -35,11 +36,10 @@ def ast_for_filename(fn)
   Parser::CurrentRuby.parse(ruby)
 end
 
-def serve_dot(dot)
-  type = :svg
+def serve_dot(dot, type = :svg)
   graph = Cheetah.run(["dot", "-T#{type}"], stdin: dot, stdout: :capture)
 
-  content_type type
+  content_type type.to_sym
   graph
 end
 
@@ -59,7 +59,10 @@ get "/files/*" do |path|
 end
 
 get "/call-graph/*" do |path|
+  format = params["format"]
+  format = "svg" unless ["svg", "png"].include?(format)
+
   dot = call_graph(path)
 
-  serve_dot(dot)
+  serve_dot(dot, format)
 end
