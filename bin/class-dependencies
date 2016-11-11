@@ -12,7 +12,8 @@ def main
   asts = ARGV.map {|fn| ast_for_filename(fn)}
   cs = CodeExplorer::Consts.new
   cs.report_modules(asts)
-  graph = cs.superclasses
+  #  graph = cs.superclasses
+  graph = cs.mentions
   puts dot_from_hash(graph)
 end
 

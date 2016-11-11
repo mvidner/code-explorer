@@ -8,10 +8,15 @@ module CodeExplorer
     attr_reader :cb
     # @return [Hash{String => Array<String>}]
     attr_reader :superclasses
+    # a class mentions another class in any way
+    # @return [Hash{String => Array<String>}]
+    attr_reader :mentions
 
     def initialize
       @cb = ConstBinding.new("")
       @superclasses = {}
+      @mentions = {}
+      @current_module = nil
     end
 
     def report_modules(asts)
@@ -39,9 +44,11 @@ module CodeExplorer
     end
 
     def new_scope(name, &block)
+      @current_module = name
       @cb = cb.open_namespace(name)
       block.call
       @cb = cb.close_namespace
+      @current_module = nil
     end
 
     def on_module(node)
@@ -63,6 +70,8 @@ module CodeExplorer
       #    puts "class #{name} < #{parent}"
 
       @superclasses[name] = [parent]
+      @mentions[name] ||= []
+      @mentions[name] << parent
 
       new_scope(name) do
         super
@@ -91,6 +100,11 @@ module CodeExplorer
       name = const_name_from_sexp(node)
       fqname = cb.resolve_used_const(name)
       #    puts "CONST #{fqname}"
+      if @current_module
+        c = @current_module
+        @mentions[c] ||= []
+        @mentions[c] << fqname unless @mentions[c].include?(fqname)
+      end
     end
   end
 end
