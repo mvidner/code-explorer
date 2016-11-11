@@ -24,6 +24,7 @@ Identifies fully qualified class names and makes an inheritance graph
 - [Graphviz](http://www.graphviz.org/) (graph visualizer)
 - [Sinatra](http://www.sinatrarb.com/) (a small web framework)
 - [Cheetah](https://github.com/openSUSE/cheetah) (runs commands)
+- [CodeRay](http://coderay.rubychan.de/) (syntax highlighting)
 
 ## License
 

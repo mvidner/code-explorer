@@ -36,4 +36,5 @@ Gem::Specification.new do |s|
   s.add_dependency "parser", "~> 2.0"
   s.add_dependency "sinatra", "~> 1"
   s.add_dependency "cheetah", "~> 0" # for calling dot (graphviz.rpm)
+  s.add_dependency "coderay", "~> 1" # syntax highlighting
 end

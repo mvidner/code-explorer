@@ -1,18 +1,10 @@
+require "coderay"
 
-# relies on escape_html
-
-# convert plain text to HTML where lines are hyperlinkable (emulate RFC 5147)
+# Convert plain text to HTML where lines are hyperlinkable.
+# Emulate RFC 5147 fragment identifier: #line=42
 def numbered_lines(text)
-  lines = text.lines
-  count_width = lines.count.to_s.size
-  lines.each_with_index.map do |line, i|
-    i += 1 # lines are counted from 1
-
-    show_line_num = i.to_s.rjust(count_width).gsub(" ", "&nbsp;")
-    escaped_line = escape_html(line.chomp).gsub(" ", "&nbsp;")
-    id = "line=#{i}" # RFC 5147 fragment identifier
-
-    "<tt><a id='#{id}' href='##{id}'>#{show_line_num}</a></tt> " \
-      "<code>#{escaped_line}</code><br>\n"
-  end.join("")
+  # but CodeRay wants to remove the equal sign;
+  tag = "lI" + "-Ne" # avoid the literal tag if we process our own source
+  html = CodeRay.scan(text, :ruby).page(line_number_anchors: tag)
+  html.gsub(tag, "line=")
 end
