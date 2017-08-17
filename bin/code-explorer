@@ -75,3 +75,5 @@ get "/call-graph/*" do |path|
 
   serve_dot(dot, format)
 end
+
+Sinatra::Application.run!

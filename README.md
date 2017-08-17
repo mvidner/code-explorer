@@ -34,7 +34,7 @@ MIT
 
 ```sh
 bundle install --path vendor/bundle
-bundle exec bin/code-explorer  # otherwise Sinatra will not start
+bundle exec code-explorer
 ```
 
 ## Example
